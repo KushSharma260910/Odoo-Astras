@@ -1,17 +1,25 @@
-const express = require("express");
 
-const router = express.Router();
+const express=require("express");
 
-const {
-    getAllMaintenance,
-    createMaintenance,
-    closeMaintenance
-} = require("../controllers/maintenanceController");
+const router=express.Router();
 
-router.get("/", getAllMaintenance);
+const maintenanceController=require("../controllers/maintenanceController");
 
-router.post("/", createMaintenance);
+router.get("/",maintenanceController.getAllMaintenance);
 
-router.patch("/:id/close", closeMaintenance);
+router.get("/:id",maintenanceController.getMaintenanceById);
 
-module.exports = router;
+// router.post("/",maintenanceController.createMaintenance);
+
+router.post(
+    "/",
+    authMiddleware,
+    roleMiddleware("FLEET_MANAGER"),
+    maintenanceController.createMaintenance
+);
+
+router.patch("/:id/complete",maintenanceController.completeMaintenance);
+
+router.delete("/:id",maintenanceController.deleteMaintenance);
+
+module.exports=router;

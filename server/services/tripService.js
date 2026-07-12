@@ -4,7 +4,7 @@ const pool = require("../config/db");
 // GET ALL TRIPS
 // =======================================================
 
-exports.getAllTrips = async () => {
+const getAllTrips = async () => {
 
     const [rows] = await pool.query(`
         SELECT
@@ -42,7 +42,7 @@ exports.getAllTrips = async () => {
 // GET TRIP BY ID
 // =======================================================
 
-exports.getTripById = async (tripId) => {
+const getTripById = async (tripId) => {
 
     const [rows] = await pool.query(
 
@@ -80,7 +80,7 @@ exports.getTripById = async (tripId) => {
 // CREATE TRIP
 // =======================================================
 
-exports.createTrip = async (tripData) => {
+const createTrip = async (tripData) => {
 
     const {
 
@@ -196,7 +196,7 @@ exports.createTrip = async (tripData) => {
 // DISPATCH TRIP
 // =======================================================
 
-exports.dispatchTrip = async (tripId) => {
+const dispatchTrip = async (tripId) => {
 
     const connection = await pool.getConnection();
 
@@ -286,7 +286,7 @@ exports.dispatchTrip = async (tripId) => {
 // COMPLETE TRIP
 // =======================================================
 
-exports.completeTrip = async (tripId, body) => {
+const completeTrip = async (tripId, body) => {
 
     const connection = await pool.getConnection();
 
@@ -410,7 +410,7 @@ WHERE trip_id=?`,
 // CANCEL TRIP
 // =======================================================
 
-exports.cancelTrip = async (tripId) => {
+const cancelTrip = async (tripId) => {
 
     const connection = await pool.getConnection();
 
@@ -490,4 +490,13 @@ exports.cancelTrip = async (tripId) => {
 
     }
 
+};
+
+module.exports = {
+    getAllTrips,
+    getTripById,
+    createTrip,
+    dispatchTrip,
+    completeTrip,
+    cancelTrip
 };
