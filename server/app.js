@@ -8,12 +8,16 @@ const driverRoutes = require("./routes/driverRoutes");
 const vehicleRoutes = require("./routes/vehicleRoutes");
 const tripRoutes = require("./routes/tripRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
+const maintenanceRoutes=require("./routes/maintenanceRoutes");
+const authRoutes = require("./routes/authRoutes");
 
 const app = express();
 
 // Middlewares
 app.use(cors());
 app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/maintenance",maintenanceRoutes);
+app.use("/api/auth", authRoutes);
 app.use(helmet());
 app.use(morgan("dev"));
 app.use(express.json());

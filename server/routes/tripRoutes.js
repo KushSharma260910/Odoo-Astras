@@ -10,16 +10,39 @@ router.get("/active", tripController.getActiveTrips);
 
 router.get("/:id", tripController.getTripById);
 
-router.post("/", tripController.createTrip);
+// router.post("/", tripController.createTrip);
+
+router.post(
+    "/",
+    authMiddleware,
+    roleMiddleware("ADMIN","FLEET_MANAGER"),
+    tripController.createTrip
+);
+
+
 
 router.put("/:id", tripController.updateTrip);
 
 router.delete("/:id", tripController.deleteTrip);
 
 // Business Logic APIs
-router.patch("/:id/dispatch", tripController.dispatchTrip);
+// router.patch("/:id/dispatch", tripController.dispatchTrip);
 
-router.patch("/:id/complete", tripController.completeTrip);
+// router.patch("/:id/complete", tripController.completeTrip);
+
+router.patch(
+    "/:id/dispatch",
+    authMiddleware,
+    roleMiddleware("ADMIN","FLEET_MANAGER"),
+    tripController.dispatchTrip
+);
+
+router.patch(
+    "/:id/complete",
+    authMiddleware,
+    roleMiddleware("ADMIN","FLEET_MANAGER"),
+    tripController.completeTrip
+);
 
 router.patch("/:id/cancel", tripController.cancelTrip);
 

@@ -10,6 +10,11 @@ const getTripById = (id) => Trip.getTripById(id);
 // Get active trips
 const getActiveTrips = () => Trip.getActiveTrips();
 
+// validation
+if (trip.cargo_weight > vehicle[0].max_load_capacity) {
+    throw new Error("Cargo weight exceeds vehicle capacity");
+}
+
 /*
     CREATE TRIP
 */
