@@ -1,0 +1,10 @@
+{
+  "name": "transitops",
+  "private": true,
+  "scripts": {
+    "frontend": "npm --prefix client run dev",
+    "backend": "npm --prefix server run dev",
+    "dev": "npm run frontend"
+  }
+}
+
