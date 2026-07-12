@@ -7,11 +7,13 @@ const authRoutes = require("./routes/authRoutes");
 const driverRoutes = require("./routes/driverRoutes");
 const vehicleRoutes = require("./routes/vehicleRoutes");
 const tripRoutes = require("./routes/tripRoutes");
+const dashboardRoutes = require("./routes/dashboardRoutes");
 
 const app = express();
 
 // Middlewares
 app.use(cors());
+app.use("/api/dashboard", dashboardRoutes);
 app.use(helmet());
 app.use(morgan("dev"));
 app.use(express.json());
