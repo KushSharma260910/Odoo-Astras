@@ -1,37 +1,22 @@
 const Driver = require("../models/Driver");
 
-exports.getAllDrivers = async () => {
+const getAllDrivers = () => Driver.getAllDrivers();
 
-    return await Driver.getAllDrivers();
+const getDriverById = (id) => Driver.getDriverById(id);
 
-};
+const getAvailableDrivers = () => Driver.getAvailableDrivers();
 
-exports.getDriverById = async (id) => {
+const createDriver = (driver) => Driver.createDriver(driver);
 
-    return await Driver.getDriverById(id);
+const updateDriver = (id, driver) => Driver.updateDriver(id, driver);
 
-};
+const deleteDriver = (id) => Driver.deleteDriver(id);
 
-exports.getAvailableDrivers = async () => {
-
-    return await Driver.getAvailableDrivers();
-
-};
-
-exports.createDriver = async (driver) => {
-
-    return await Driver.createDriver(driver);
-
-};
-
-exports.updateDriver = async (id, driver) => {
-
-    return await Driver.updateDriver(id, driver);
-
-};
-
-exports.deleteDriver = async (id) => {
-
-    return await Driver.deleteDriver(id);
-
+module.exports = {
+    getAllDrivers,
+    getDriverById,
+    getAvailableDrivers,
+    createDriver,
+    updateDriver,
+    deleteDriver
 };

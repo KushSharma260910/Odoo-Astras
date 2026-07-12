@@ -1,157 +1,134 @@
 const db = require("../config/db");
 
-exports.getAllDrivers = async () => {
-
+// Get all drivers
+const getAllDrivers = async () => {
     const [rows] = await db.query(
-
         "SELECT * FROM drivers ORDER BY driver_id DESC"
-
     );
-
     return rows;
-
 };
 
-exports.getDriverById = async (id) => {
-
+// Get driver by ID
+const getDriverById = async (id) => {
     const [rows] = await db.query(
-
-        "SELECT * FROM drivers WHERE driver_id=?",
-
+        "SELECT * FROM drivers WHERE driver_id = ?",
         [id]
-
     );
-
     return rows[0];
-
 };
 
-exports.getAvailableDrivers = async () => {
-
+// Get available drivers
+const getAvailableDrivers = async () => {
     const [rows] = await db.query(
-
-        "SELECT * FROM drivers WHERE status='AVAILABLE'"
-
+        "SELECT * FROM drivers WHERE status = 'AVAILABLE'"
     );
-
     return rows;
-
 };
 
-exports.createDriver = async (driver) => {
+// Create driver
+const createDriver = async (driver) => {
 
     const sql = `
-
         INSERT INTO drivers
-
         (
-
+            employee_code,
             name,
-
-            license_number,
-
-            license_category,
-
-            license_expiry,
-
             phone,
-
+            email,
+            address,
+            date_of_birth,
+            license_number,
+            license_category,
+            license_issue_date,
+            license_expiry,
+            joining_date,
+            experience_years,
             safety_score,
-
             status
-
         )
-
-        VALUES (?,?,?,?,?,?,?)
-
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
-    const values = [
-
+    const [result] = await db.query(sql, [
+        driver.employee_code,
         driver.name,
-
-        driver.license_number,
-
-        driver.license_category,
-
-        driver.license_expiry,
-
         driver.phone,
-
-        driver.safety_score,
-
-        driver.status
-
-    ];
-
-    const [result] = await db.query(sql, values);
+        driver.email,
+        driver.address,
+        driver.date_of_birth,
+        driver.license_number,
+        driver.license_category,
+        driver.license_issue_date,
+        driver.license_expiry,
+        driver.joining_date,
+        driver.experience_years || 0,
+        driver.safety_score || 100.00,
+        driver.status || "AVAILABLE"
+    ]);
 
     return result;
-
 };
 
-exports.updateDriver = async (id, driver) => {
+// Update driver
+const updateDriver = async (id, driver) => {
 
     const sql = `
-
         UPDATE drivers
-
         SET
-
-        name=?,
-
-        license_number=?,
-
-        license_category=?,
-
-        license_expiry=?,
-
-        phone=?,
-
-        safety_score=?,
-
-        status=?
-
-        WHERE driver_id=?
-
+            employee_code = ?,
+            name = ?,
+            phone = ?,
+            email = ?,
+            address = ?,
+            date_of_birth = ?,
+            license_number = ?,
+            license_category = ?,
+            license_issue_date = ?,
+            license_expiry = ?,
+            joining_date = ?,
+            experience_years = ?,
+            safety_score = ?,
+            status = ?
+        WHERE driver_id = ?
     `;
 
-    const values = [
-
+    const [result] = await db.query(sql, [
+        driver.employee_code,
         driver.name,
-
-        driver.license_number,
-
-        driver.license_category,
-
-        driver.license_expiry,
-
         driver.phone,
-
+        driver.email,
+        driver.address,
+        driver.date_of_birth,
+        driver.license_number,
+        driver.license_category,
+        driver.license_issue_date,
+        driver.license_expiry,
+        driver.joining_date,
+        driver.experience_years,
         driver.safety_score,
-
         driver.status,
-
         id
-
-    ];
-
-    const [result] = await db.query(sql, values);
+    ]);
 
     return result;
-
 };
 
-exports.deleteDriver = async (id) => {
+// Delete driver
+const deleteDriver = async (id) => {
 
     const [result] = await db.query(
-
-        "DELETE FROM drivers WHERE driver_id=?",
-
+        "DELETE FROM drivers WHERE driver_id = ?",
         [id]
-
     );
 
     return result;
+};
 
+module.exports = {
+    getAllDrivers,
+    getDriverById,
+    getAvailableDrivers,
+    createDriver,
+    updateDriver,
+    deleteDriver
 };
