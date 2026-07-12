@@ -1,258 +1,229 @@
 const pool = require("../config/db");
 
+// ======================================================
+// GET REPORTS
+// ======================================================
+
 exports.getReports = async () => {
 
-    // ==========================================
-    // Fuel Cost
-    // ==========================================
+    // =====================================
+    // VEHICLE REPORT
+    // =====================================
 
-    const [[fuel]] = await pool.query(`
+    const [vehicleReport] = await pool.query(
 
-        SELECT
+        `SELECT
 
-        COALESCE(SUM(cost),0)
+            vehicle_id,
 
-        AS fuelCost
+            vehicle_name,
 
-        FROM fuel_logs
+            registration_number,
 
-    `);
+            vehicle_type,
 
+            status,
 
+            odometer
 
+        FROM vehicles
 
-    // ==========================================
-    // Maintenance Cost
-    // ==========================================
+        ORDER BY vehicle_name`
 
-    const [[maintenance]] = await pool.query(`
-
-        SELECT
-
-        COALESCE(SUM(cost),0)
-
-        AS maintenanceCost
-
-        FROM maintenance
-
-    `);
+    );
 
 
+    // =====================================
+    // TRIP REPORT
+    // =====================================
+
+    const [tripReport] = await pool.query(
+
+        `SELECT
+
+            t.trip_id,
+
+            v.vehicle_name,
+
+            d.name AS driver_name,
+
+            t.source,
+
+            t.destination,
+
+            t.actual_distance,
+
+            t.revenue,
+
+            t.status,
+
+            t.start_time,
+
+            t.end_time
+
+        FROM trips t
+
+        JOIN vehicles v
+
+            ON t.vehicle_id = v.vehicle_id
+
+        JOIN drivers d
+
+            ON t.driver_id = d.driver_id
+
+        ORDER BY t.trip_id DESC`
+
+    );
 
 
+    // =====================================
+    // FUEL REPORT
+    // =====================================
 
-    // ==========================================
-    // Other Expenses
-    // ==========================================
+    const [fuelReport] = await pool.query(
 
-    const [[expense]] = await pool.query(`
+        `SELECT
 
-        SELECT
+            v.vehicle_name,
 
-        COALESCE(SUM(amount),0)
+            SUM(f.liters) AS total_liters,
 
-        AS expenseCost
+            SUM(f.cost) AS total_cost
+
+        FROM fuel_logs f
+
+        JOIN vehicles v
+
+            ON f.vehicle_id = v.vehicle_id
+
+        GROUP BY
+
+            v.vehicle_id,
+
+            v.vehicle_name
+
+        ORDER BY
+
+            total_cost DESC`
+
+    );
+
+
+    // =====================================
+    // MAINTENANCE REPORT
+    // =====================================
+
+    const [maintenanceReport] = await pool.query(
+
+        `SELECT
+
+            v.vehicle_name,
+
+            COUNT(*) AS total_maintenance,
+
+            SUM(m.cost) AS maintenance_cost
+
+        FROM maintenance m
+
+        JOIN vehicles v
+
+            ON m.vehicle_id = v.vehicle_id
+
+        GROUP BY
+
+            v.vehicle_id,
+
+            v.vehicle_name
+
+        ORDER BY
+
+            maintenance_cost DESC`
+
+    );
+
+
+    // =====================================
+    // EXPENSE REPORT
+    // =====================================
+
+    const [expenseReport] = await pool.query(
+
+        `SELECT
+
+            expense_type,
+
+            SUM(amount) AS total_amount
 
         FROM expenses
 
-    `);
+        GROUP BY expense_type
+
+        ORDER BY total_amount DESC`
+
+    );
 
 
+    // =====================================
+    // DRIVER REPORT
+    // =====================================
+
+    const [driverReport] = await pool.query(
+
+        `SELECT
+
+            driver_id,
+
+            name,
+
+            safety_score,
+
+            status,
+
+            license_expiry
+
+        FROM drivers
+
+        ORDER BY safety_score DESC`
+
+    );
 
 
+    // =====================================
+    // REVENUE SUMMARY
+    // =====================================
 
-    // ==========================================
-    // Revenue
-    // ==========================================
+    const [[summary]] = await pool.query(
 
-    const [[revenue]] = await pool.query(`
+        `SELECT
 
-        SELECT
+            COUNT(*) AS completed_trips,
 
-        COALESCE(SUM(revenue),0)
+            SUM(revenue) AS total_revenue,
 
-        AS totalRevenue
-
-        FROM trips
-
-        WHERE status='COMPLETED'
-
-    `);
-
-
-
-
-
-
-    // ==========================================
-    // Acquisition Cost
-    // ==========================================
-
-    const [[acquisition]] = await pool.query(`
-
-        SELECT
-
-        COALESCE(SUM(acquisition_cost),0)
-
-        AS acquisitionCost
-
-        FROM vehicles
-
-    `);
-
-
-
-
-
-
-    // ==========================================
-    // Fuel Efficiency
-    // ==========================================
-
-    const [[efficiency]] = await pool.query(`
-
-        SELECT
-
-        ROUND(
-
-            SUM(actual_distance)
-
-            /
-
-            NULLIF(SUM(liters),0)
-
-        ,2)
-
-        AS fuelEfficiency
+            AVG(revenue) AS average_revenue
 
         FROM trips
 
-        JOIN fuel_logs
+        WHERE status='COMPLETED'`
 
-        ON trips.trip_id=fuel_logs.trip_id
-
-        WHERE trips.status='COMPLETED'
-
-    `);
-
-
-
-
-
-
-
-    // ==========================================
-    // Operational Cost
-    // ==========================================
-
-    const operationalCost =
-
-        fuel.fuelCost +
-
-        maintenance.maintenanceCost +
-
-        expense.expenseCost;
-
-
-
-
-
-
-    // ==========================================
-    // Profit
-    // ==========================================
-
-    const profit =
-
-        revenue.totalRevenue -
-
-        operationalCost;
-
-
-
-
-
-
-    // ==========================================
-    // ROI
-    // ==========================================
-
-    let roi = 0;
-
-    if(acquisition.acquisitionCost > 0){
-
-        roi = (
-
-            profit
-
-            /
-
-            acquisition.acquisitionCost
-
-        ) * 100;
-
-    }
-
-
-
-
-
-
-    // ==========================================
-    // Cost Per Vehicle
-    // ==========================================
-
-    const [[vehicleCount]] = await pool.query(`
-
-        SELECT
-
-        COUNT(*)
-
-        AS total
-
-        FROM vehicles
-
-    `);
-
-
-
-
-    const costPerVehicle =
-
-        vehicleCount.total > 0
-
-        ?
-
-        operationalCost / vehicleCount.total
-
-        :
-
-        0;
-
-
-
-
+    );
 
 
     return {
 
-        revenue: revenue.totalRevenue,
+        summary,
 
-        fuelCost: fuel.fuelCost,
+        vehicleReport,
 
-        maintenanceCost: maintenance.maintenanceCost,
+        tripReport,
 
-        expenseCost: expense.expenseCost,
+        fuelReport,
 
-        operationalCost,
+        maintenanceReport,
 
-        profit,
+        expenseReport,
 
-        roi: Number(roi.toFixed(2)),
-
-        fuelEfficiency: efficiency.fuelEfficiency || 0,
-
-        costPerVehicle: Number(costPerVehicle.toFixed(2))
+        driverReport
 
     };
 

@@ -1,9 +1,8 @@
 const pool = require("../config/db");
 
-
-// ======================================
+// ======================================================
 // GET ALL MAINTENANCE
-// ======================================
+// ======================================================
 
 exports.getAllMaintenance = async () => {
 
@@ -11,19 +10,39 @@ exports.getAllMaintenance = async () => {
 
         `SELECT
 
-            m.*,
+            m.maintenance_id,
+
+            m.maintenance_type,
+
+            m.description,
+
+            m.cost,
+
+            m.start_date,
+
+            m.completion_date,
+
+            m.status,
+
+            m.created_at,
+
+            v.vehicle_id,
 
             v.vehicle_name,
 
-            v.registration_number
+            v.registration_number,
+
+            v.vehicle_type
 
         FROM maintenance m
 
         JOIN vehicles v
 
-        ON m.vehicle_id=v.vehicle_id
+            ON m.vehicle_id = v.vehicle_id
 
-        ORDER BY m.maintenance_id DESC`
+        ORDER BY
+
+            m.created_at DESC`
 
     );
 
@@ -32,9 +51,9 @@ exports.getAllMaintenance = async () => {
 };
 
 
-// ======================================
+// ======================================================
 // CREATE MAINTENANCE
-// ======================================
+// ======================================================
 
 exports.createMaintenance = async (data) => {
 
@@ -59,15 +78,24 @@ exports.createMaintenance = async (data) => {
         } = data;
 
 
+
+        // ===================================
+        // CHECK VEHICLE EXISTS
+        // ===================================
+
         const [vehicle] = await connection.query(
 
             `SELECT *
 
             FROM vehicles
 
-            WHERE vehicle_id=?`,
+            WHERE vehicle_id = ?`,
 
-            [vehicle_id]
+            [
+
+                vehicle_id
+
+            ]
 
         );
 
@@ -77,12 +105,33 @@ exports.createMaintenance = async (data) => {
             throw new Error("Vehicle not found.");
 
 
+
+        // ===================================
+        // VEHICLE SHOULD NOT BE ON TRIP
+        // ===================================
+
         if (vehicle[0].status === "ON_TRIP")
 
-            throw new Error("Vehicle currently on trip.");
+            throw new Error("Vehicle is currently on a trip.");
 
 
-        await connection.query(
+
+        // ===================================
+        // VEHICLE SHOULD NOT ALREADY
+        // BE UNDER MAINTENANCE
+        // ===================================
+
+        if (vehicle[0].status === "IN_SHOP")
+
+            throw new Error("Vehicle is already in maintenance.");
+
+
+
+        // ===================================
+        // INSERT MAINTENANCE RECORD
+        // ===================================
+
+        const [result] = await connection.query(
 
             `INSERT INTO maintenance(
 
@@ -100,7 +149,11 @@ exports.createMaintenance = async (data) => {
 
             )
 
-            VALUES(?,?,?,?,?,?)`,
+            VALUES(
+
+                ?,?,?,?,?,?
+
+            )`,
 
             [
 
@@ -121,6 +174,11 @@ exports.createMaintenance = async (data) => {
         );
 
 
+
+        // ===================================
+        // UPDATE VEHICLE STATUS
+        // ===================================
+
         await connection.query(
 
             `UPDATE vehicles
@@ -136,129 +194,15 @@ exports.createMaintenance = async (data) => {
             ]
 
         );
-
-
-        await connection.commit();
-
-
-        return {
-
-            message: "Maintenance created"
-
-        };
-
-
-    } catch (error) {
-
-        await connection.rollback();
-
-        throw error;
-
-    }
-
-    finally {
-
-        connection.release();
-
-    }
-
-};
-
-
-// ======================================
-// CLOSE MAINTENANCE
-// ======================================
-
-exports.closeMaintenance = async (maintenanceId) => {
-
-    const connection = await pool.getConnection();
-
-    try {
-
-        await connection.beginTransaction();
-
-        const [maintenance] = await connection.query(
-
-            `SELECT *
-
-            FROM maintenance
-
-            WHERE maintenance_id=?`,
-
-            [
-
-                maintenanceId
-
-            ]
-
-        );
-
-
-        if (maintenance.length === 0)
-
-            throw new Error("Maintenance not found.");
-
-
-        await connection.query(
-
-            `UPDATE maintenance
-
-            SET
-
-                status='COMPLETED',
-
-                completion_date=CURDATE()
-
-            WHERE maintenance_id=?`,
-
-            [
-
-                maintenanceId
-
-            ]
-
-        );
-
-
-        await connection.query(
-
-            `UPDATE vehicles
-
-            SET status='AVAILABLE'
-
-            WHERE vehicle_id=?`,
-
-            [
-
-                maintenance[0].vehicle_id
-
-            ]
-
-        );
-
-
-        await connection.commit();
-
-
-        return {
-
-            message: "Maintenance completed"
-
-        };
-
-
-    } catch (error) {
-
-        await connection.rollback();
-
-        throw error;
-
-    }
-
-    finally {
-
-        connection.release();
-
-    }
-
-};
+            // commit transaction
+            await connection.commit();
+
+            return { maintenance_id: result.insertId };
+
+        } catch (error) {
+            await connection.rollback();
+            throw error;
+        } finally {
+            connection.release();
+        }
+}

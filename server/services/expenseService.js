@@ -1,9 +1,8 @@
 const pool = require("../config/db");
 
-
-// ======================================
+// ======================================================
 // GET ALL EXPENSES
-// ======================================
+// ======================================================
 
 exports.getExpenses = async () => {
 
@@ -11,11 +10,25 @@ exports.getExpenses = async () => {
 
         `SELECT
 
-            e.*,
+            e.expense_id,
+
+            e.expense_type,
+
+            e.amount,
+
+            e.expense_date,
+
+            e.remarks,
+
+            e.created_at,
+
+            v.vehicle_id,
 
             v.vehicle_name,
 
             v.registration_number,
+
+            t.trip_id,
 
             t.source,
 
@@ -31,7 +44,9 @@ exports.getExpenses = async () => {
 
             ON e.trip_id = t.trip_id
 
-        ORDER BY expense_date DESC`
+        ORDER BY
+
+            e.expense_date DESC`
 
     );
 
@@ -40,50 +55,19 @@ exports.getExpenses = async () => {
 };
 
 
-// ======================================
+// ======================================================
 // CREATE EXPENSE
-// ======================================
+// ======================================================
 
 exports.createExpense = async (data) => {
 
-    const {
+    const connection = await pool.getConnection();
 
-        vehicle_id,
+    try {
 
-        trip_id,
+        await connection.beginTransaction();
 
-        expense_type,
-
-        amount,
-
-        expense_date,
-
-        remarks
-
-    } = data;
-
-
-    const [vehicle] = await pool.query(
-
-        `SELECT *
-
-        FROM vehicles
-
-        WHERE vehicle_id=?`,
-
-        [vehicle_id]
-
-    );
-
-
-    if (vehicle.length === 0)
-
-        throw new Error("Vehicle not found.");
-
-
-    const [result] = await pool.query(
-
-        `INSERT INTO expenses(
+        const {
 
             vehicle_id,
 
@@ -97,33 +81,140 @@ exports.createExpense = async (data) => {
 
             remarks
 
-        )
-
-        VALUES(?,?,?,?,?,?)`,
-
-        [
-
-            vehicle_id,
-
-            trip_id || null,
-
-            expense_type,
-
-            amount,
-
-            expense_date,
-
-            remarks
-
-        ]
-
-    );
+        } = data;
 
 
-    return {
 
-        expense_id: result.insertId
+        // ===================================
+        // CHECK VEHICLE EXISTS
+        // ===================================
 
-    };
+        const [vehicle] = await connection.query(
+
+            `SELECT *
+
+            FROM vehicles
+
+            WHERE vehicle_id=?`,
+
+            [
+
+                vehicle_id
+
+            ]
+
+        );
+
+
+
+        if (vehicle.length === 0)
+
+            throw new Error("Vehicle not found.");
+
+
+
+        // ===================================
+        // CHECK TRIP EXISTS (OPTIONAL)
+        // ===================================
+
+        if (trip_id) {
+
+            const [trip] = await connection.query(
+
+                `SELECT *
+
+                FROM trips
+
+                WHERE trip_id=?`,
+
+                [
+
+                    trip_id
+
+                ]
+
+            );
+
+            if (trip.length === 0)
+
+                throw new Error("Trip not found.");
+
+        }
+
+
+
+        // ===================================
+        // INSERT EXPENSE
+        // ===================================
+
+        const [result] = await connection.query(
+
+            `INSERT INTO expenses(
+
+                vehicle_id,
+
+                trip_id,
+
+                expense_type,
+
+                amount,
+
+                expense_date,
+
+                remarks
+
+            )
+
+            VALUES(
+
+                ?,?,?,?,?,?
+
+            )`,
+
+            [
+
+                vehicle_id,
+
+                trip_id || null,
+
+                expense_type,
+
+                amount,
+
+                expense_date,
+
+                remarks
+
+            ]
+
+        );
+
+
+
+        await connection.commit();
+
+        return {
+
+            expense_id: result.insertId,
+
+            message: "Expense created successfully"
+
+        };
+
+    }
+
+    catch (error) {
+
+        await connection.rollback();
+
+        throw error;
+
+    }
+
+    finally {
+
+        connection.release();
+
+    }
 
 };

@@ -8,25 +8,17 @@ exports.getDashboard = async (req, res) => {
             await dashboardService.getDashboard();
 
         res.status(200).json({
-
             success: true,
-
             data: dashboard
-
         });
 
-    }
+    } catch (error) {
 
-    catch (error) {
-
-        console.log(error);
+        console.error(error);
 
         res.status(500).json({
-
             success: false,
-
             message: error.message
-
         });
 
     }

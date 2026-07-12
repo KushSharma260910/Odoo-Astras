@@ -1,8 +1,6 @@
 const tripService = require("../services/tripService");
 
-// =====================================
 // GET ALL TRIPS
-// =====================================
 exports.getAllTrips = async (req, res) => {
     try {
         const trips = await tripService.getAllTrips();
@@ -14,22 +12,15 @@ exports.getAllTrips = async (req, res) => {
         });
 
     } catch (error) {
-
-        console.error(error);
-
         res.status(500).json({
             success: false,
             message: error.message
         });
-
     }
 };
 
-// =====================================
 // GET TRIP BY ID
-// =====================================
 exports.getTripById = async (req, res) => {
-
     try {
 
         const trip = await tripService.getTripById(req.params.id);
@@ -47,51 +38,35 @@ exports.getTripById = async (req, res) => {
         });
 
     } catch (error) {
-
-        console.error(error);
-
         res.status(500).json({
             success: false,
             message: error.message
         });
-
     }
-
 };
 
-// =====================================
 // CREATE TRIP
-// =====================================
 exports.createTrip = async (req, res) => {
-
     try {
 
-        const trip = await tripService.createTrip(req.body);
+        const result = await tripService.createTrip(req.body);
 
         res.status(201).json({
             success: true,
             message: "Trip created successfully",
-            data: trip
+            data: result
         });
 
     } catch (error) {
-
-        console.error(error);
-
         res.status(400).json({
             success: false,
             message: error.message
         });
-
     }
-
 };
 
-// =====================================
-// DISPATCH TRIP
-// =====================================
+// DISPATCH
 exports.dispatchTrip = async (req, res) => {
-
     try {
 
         const result = await tripService.dispatchTrip(req.params.id);
@@ -103,23 +78,15 @@ exports.dispatchTrip = async (req, res) => {
         });
 
     } catch (error) {
-
-        console.error(error);
-
         res.status(400).json({
             success: false,
             message: error.message
         });
-
     }
-
 };
 
-// =====================================
-// COMPLETE TRIP
-// =====================================
+// COMPLETE
 exports.completeTrip = async (req, res) => {
-
     try {
 
         const result = await tripService.completeTrip(
@@ -134,23 +101,15 @@ exports.completeTrip = async (req, res) => {
         });
 
     } catch (error) {
-
-        console.error(error);
-
         res.status(400).json({
             success: false,
             message: error.message
         });
-
     }
-
 };
 
-// =====================================
-// CANCEL TRIP
-// =====================================
+// CANCEL
 exports.cancelTrip = async (req, res) => {
-
     try {
 
         const result = await tripService.cancelTrip(req.params.id);
@@ -162,14 +121,9 @@ exports.cancelTrip = async (req, res) => {
         });
 
     } catch (error) {
-
-        console.error(error);
-
         res.status(400).json({
             success: false,
             message: error.message
         });
-
     }
-
 };

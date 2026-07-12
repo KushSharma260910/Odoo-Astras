@@ -55,7 +55,7 @@ exports.getTripById = async (tripId) => {
             v.vehicle_type,
 
             d.name,
-            d.phone,
+            d.contact_number,
             d.license_number
 
         FROM trips t
@@ -316,13 +316,16 @@ exports.completeTrip = async (tripId, body) => {
 
         await connection.query(
             `UPDATE trips
-             SET status='COMPLETED',
-                 actual_distance=?,
-                 revenue=?,
-                 end_time=NOW()
-             WHERE trip_id=?`,
+SET
+    status='COMPLETED',
+    actual_distance=?,
+    fuel_used=?,
+    revenue=?,
+    end_time=NOW()
+WHERE trip_id=?`,
             [
                 actual_distance,
+                fuel_used,
                 revenue,
                 tripId
             ]

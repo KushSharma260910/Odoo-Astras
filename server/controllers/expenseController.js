@@ -1,10 +1,5 @@
 const expenseService = require("../services/expenseService");
 
-
-// ======================================
-// GET ALL EXPENSES
-// ======================================
-
 exports.getExpenses = async (req, res) => {
 
     try {
@@ -13,32 +8,21 @@ exports.getExpenses = async (req, res) => {
             await expenseService.getExpenses();
 
         res.status(200).json({
-
             success: true,
             count: expenses.length,
             data: expenses
-
         });
 
-    }
-
-    catch (error) {
+    } catch (error) {
 
         res.status(500).json({
-
             success: false,
             message: error.message
-
         });
 
     }
 
 };
-
-
-// ======================================
-// CREATE EXPENSE
-// ======================================
 
 exports.createExpense = async (req, res) => {
 
@@ -48,22 +32,16 @@ exports.createExpense = async (req, res) => {
             await expenseService.createExpense(req.body);
 
         res.status(201).json({
-
             success: true,
             message: "Expense created successfully",
             data: result
-
         });
 
-    }
-
-    catch (error) {
+    } catch (error) {
 
         res.status(400).json({
-
             success: false,
             message: error.message
-
         });
 
     }
